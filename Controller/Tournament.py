@@ -1,48 +1,42 @@
 import inquirer
 import re
-from Models import Tournament as TClass
-from Models.Player import Player as PClass
-from View import Tournament as TView
+from Models.Tournament import TournamentModel
+from Models.Player import PlayerModel
+from View.Tournament import TournamentView
 
-def new_tournament():
-    new_t = [inquirer.Text('name', message='What is the name of this tournament'),
-             inquirer.Text('places', message='Wich town?'),
-             inquirer.Text('date_start', 
-                           message='Start ?',
-                           validate = lambda _, d: TClass.Tournament.validate_attribute('date', d)),
-             inquirer.Text('date_end', 
-                           message='End ?',
-                           validate = lambda _,d: TClass.Tournament.validate_attribute('date', d)),
-             inquirer.Text('round_max', 
-                           message="Number of maximun round? (A number), Base value : 4",
-                           validate = lambda _, r : TClass.Tournament.validate_attribute('round_max', r)), 
-             inquirer.Checkbox('player_list', message="List of player",choices=PClass.load_players()),
-             inquirer.Text('description', message='A description of the tournament')
-             ]
-    answer = inquirer.prompt(new_t)
 
-    if answer['round_max'] != "":
+class TournamentController():
+    @classmethod
+    def new_tournament(cls):
 
-        tournament = TClass.Tournament(answer['name'], 
-                                   answer['places'],
-                                   answer['date_start'],
-                                   answer['date_end'], 
-                                   answer['player_list'], 
-                                   answer['description'],
-                                   int(answer['round_max']))
-    else:
-         tournament = TClass.Tournament(answer['name'], 
-                                   answer['places'],
-                                   answer['date_start'],
-                                   answer['date_end'], 
-                                   answer['player_list'], 
-                                   answer['description'])
-    tournament.save_tournament()
-
-    TView.message_tournament_saved()
-         
-
+        players = cls.get_players()
+        answer = TournamentView.ask_for_info_tournament(players)
+    
+        if answer['nb_round_total'] != "":
+            answer['nb_round_total'] = int(answer['nb_round_total'])
+        else:
+            answer['nb_round_total'] = 4
         
+        tournament = TournamentModel(**answer)
+        tournament.save()
+
+        TournamentView.message_tournament_saved()
+
+      
+    def get_players():
+
+        players = PlayerModel.load_players()
+        return players
+    
+    def get_tournaments():
+        tournaments = TournamentModel.load()
+        return tournaments
+
+
+            
+            
+
+            
 
 
 

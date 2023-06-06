@@ -10,8 +10,3 @@ def init_folder():
         os.mkdir('json/tournament')
     if not os.path.exists('json/player'):
         os.mkdir('json/player')
-
-def init_files():
-     filename = 'json/player/players.json'
-     if os.path.isfile(filename) is False:
-        open(filename, 'w')
