@@ -17,11 +17,11 @@ class TournamentModel:
         places: str,
         date_start: str,
         date_end: str,
-        players: list[PlayerModel],
+        players: list,
         description: str,
         nb_round_total: int,
         actual_round_index: int = 0,
-        rounds_data: list = [],
+        rounds_data: list = None,
     ):  # TODO Ranking ici, def build_ranking(self/cls)
         self.name = name
         self.places = places
@@ -29,7 +29,7 @@ class TournamentModel:
         self.date_end = date_end
         self.nb_round_total = nb_round_total
         self.actual_round_index = actual_round_index
-        self.rounds_data = rounds_data
+        self.rounds_data = rounds_data or []
         self.players = players
         self.description = description
 
@@ -62,15 +62,12 @@ class TournamentModel:
 
     @classmethod
     def load(cls):
-        # TODO Ajouter la logique pour charger les Rounds et les Matchs
         all_tournaments = []
-        tournament_filenames = []
         with os.scandir(cls.DIRECTORY) as entries:
             for entry in entries:
-                tournament_filenames.append(entry.path)
-        for tournament_filename in tournament_filenames:
-            if os.path.getsize(tournament_filename) != 0:
-                with open(tournament_filename, "r") as f:
+                if os.path.getsize(entry.path) == 0:
+                    continue
+                with open(entry.path, "r") as f:
                     all_tournaments.append(cls(**json.load(f)))
 
         for t in all_tournaments:
@@ -79,12 +76,10 @@ class TournamentModel:
                 players_list.append(p["ine"])
             t.players = PlayerModel.search_by_ine(ine_list=players_list)
 
-            match_list = []
             round_list = []
-            for round in t.rounds_data:
-                # print(f'round : {round}')
-                for match in round:
-                    # print(f'match: {match}')
+            for round_data in t.rounds_data:
+                match_list = []
+                for match in round_data:
                     match_players_list = PlayerModel.search_by_ine(
                         [match["player0"], match["player1"]]
                     )
@@ -99,24 +94,25 @@ class TournamentModel:
                         match["winner"],
                     )
                     match_list.append(new_match)
-                round = Round(match_list=match_list)
-                round_list.append(round)
-            t.rounds_data = round_list
+                round_list.append(Round(match_list=match_list))
+            t.rounds_data = list(round_list)
         return all_tournaments
 
-    def generate_ranking(self):
+    def calculate_ranking(self):
         matchs_list = self.get_all_matches()
 
-        ranking_dict = {player: 0 for player in self.players}
+        for player in self.players:
+            player.points = 0
 
         for match in matchs_list:
             if match.played and match.winner is not None:
-                ranking_dict[match.winner] += 1
+                for player in self.players:
+                    if player == match.winner:
+                        player.points += 1
             elif match.played and match.winner is None:
-                ranking_dict[match.player0] += 0.5
-                ranking_dict[match.player1] += 0.5
-        ranking_dict = sorted(ranking_dict.items(), key=lambda i: i[1], reverse=True)
-        return ranking_dict
+                for player in self.players:
+                    if player == match.player0 or player == match.player1:
+                        player.points += 0.5
 
     def get_all_matches(self):
         match_list = []

@@ -2,9 +2,10 @@ from View.Round import RoundView
 
 from Models.Round import Round
 
+from Controller.Tournament import TournamentController
+
 
 class RoundControl:
-    # TODO ajout d'un init
     def __init__(self, tournament):
         self.tournament = tournament
 
@@ -15,9 +16,11 @@ class RoundControl:
             if choice == match.player0 or choice == match.player1:
                 match.played = True
                 match.winner = choice
+                tournament.calculate_ranking()
                 tournament.save()
             if choice == "Draw":
                 match.played = True
+                tournament.calculate_ranking()
                 tournament.save()
             if choice == "Exit":
                 break
@@ -25,16 +28,19 @@ class RoundControl:
     @classmethod
     def play_round(cls, tournament):
         while 1:
-            unplayed_match = cls.get_unplayed_matches(tournament)
+            unplayed_match = []
+            if tournament.actual_round_index > 0:
+                unplayed_match = cls.get_unplayed_matches(tournament)
             if len(unplayed_match) > 0:
                 cls.play_matchs(unplayed_match, tournament)
 
-            RoundView.display_round(tournament.actual_round_index)
-            round = Round(
-                players=tournament.players
-            )  # TODO Voir pour bouger la gen des rounds a la création du tournaments
+            RoundView.display_round(tournament.actual_round_index + 1)
+            if tournament.actual_round_index == 0:
+                round = Round(players=tournament.players, is_first_round=True)
+            else:
+                old_match_list = tournament.get_all_matches()
+                round = Round(players=tournament.players, old_match_list=old_match_list)
             tournament.rounds_data.append(round)
-            print(tournament.rounds_data[0].match_list[0].winner)
             tournament.save()
             cls.play_matchs(round.match_list, tournament)
             tournament.actual_round_index += 1
@@ -55,10 +61,9 @@ class RoundControl:
             ):
                 self.play_round(tournament)
             if action == "Display Ranking":
-                pass
+                TournamentController.show_ranking(tournament)
             if action == "Exit":
                 break
-        # TODO RAJOUTER LE CALCUL DE RANKING ET LE DISPLAY
 
     @staticmethod
     def get_unplayed_matches(tournament) -> list:

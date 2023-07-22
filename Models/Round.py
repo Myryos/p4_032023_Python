@@ -2,51 +2,68 @@ import random as rnd
 
 
 class Round:
-
-    """Revoir la structure pour utilise l'init pour la creation des rounds"""
-
     def __init__(
-        self, *, players=None, match_list=None
+        self,
+        *,
+        players=None,
+        match_list=None,
+        is_first_round=False,
+        old_match_list=None
     ):  # L'etoile permet de dire a python que cette fonction demande les paramettre dnas l'ordre specifier
         if players:
-            self.match_list = self.generate_rounds(players)
-        elif match_list:
+            self.match_list = self.generate_rounds(
+                players, is_first_round=is_first_round, old_match_list=old_match_list
+            )
+        elif match_list is not None:
             self.match_list = match_list
         else:
             raise ValueError("No players or Match list provided")
 
     def to_dict(self):
-        return [m.to_dict() for m in self.match_list]
+        if self.match_list is not None:
+            return [m.to_dict() for m in self.match_list]
+        else:
+            return []
 
-    # TODO reecrire integralement les fonction generate rounds et match
-    def generate_rounds(self, list_player):
-        players = []
-        for player in list_player:
-            players.append(player)
-        pairs = []
+    def generate_rounds(self, list_player, is_first_round=False, old_match_list=None):
+        def generate_match_object(players: list):
+            match_object = self.generate_random_match(players)
+
+            popped_players.extend([match_object.player0, match_object.player1])
+            players.remove(match_object.player0)
+            players.remove(match_object.player1)
+            return match_object
+
+        players = list(list_player)
+        match_list = []
         popped_players = []
-
         while len(players) > 1:
-            # TODO nettoyer pour rendre tout cela plus clair
-            match_tuple = self.generate_match(players)
-            player1 = match_tuple[0].player1
+            if is_first_round:
+                match_list.append(generate_match_object(players))
+            else:
+                players = self.get_ranking_players(players)
+                new_players_list = [players.pop(0)]
 
-            popped_players.append(players.pop(match_tuple[1]))
-            # Get the new index of player 1 and pop it
+                index_player1 = 0
 
-            p1_new_index = players.index(player1)
+                if len(players) > 1 and self.is_same_match(
+                    old_pairs=old_match_list,
+                    new_pair=[new_players_list[0], players[index_player1]],
+                ):
+                    index_player1 = rnd.randint(1, len(players) - 1)
 
-            popped_players.append(players.pop(p1_new_index))
+                new_players_list.append(players.pop(index_player1))
+                match_list.append(generate_match_object(new_players_list))
+        return match_list
 
-            pairs.append(match_tuple[0])
-            if len(players) == 1:
-                rnd.shuffle(popped_players)
-                popped_player_index = rnd.randint(0, len(popped_players) - 1)
-                players.append(popped_players.pop(popped_player_index))
-        return pairs
+    @staticmethod
+    def get_ranking_players(players_list: list) -> list:
+        return sorted(
+            players_list, key=lambda x: (x.points, rnd.random()), reverse=True
+        )
 
     @classmethod
-    def generate_match(cls, list_player: list):
+    def generate_random_match(cls, list_player: list):
         first_player = 0
         second_player = 0
         while first_player == second_player:
@@ -57,14 +74,18 @@ class Round:
             player0=list_player[first_player], player1=list_player[second_player]
         )
 
-        return (match_object, first_player, second_player)
+        return match_object
 
-    def is_same_pair(self, old_pairs, new_pair):  # A renommer
-        pass
-
-    """TODO Retravaille la gen pour qu'a chaque appel de la fonction
-    renvoi une liste de pairs ou les joueurs ne sont présent qu'une fois"""
-    # TODO Ajout d'une logique pour que les joueurs soit différent a chaque fois dans mesure du possible
+    def is_same_match(self, old_pairs: list, new_pair: list) -> bool:
+        for match in old_pairs:
+            if (
+                match.player0 == new_pair[0]
+                and match.player1 == new_pair[1]
+                or match.player0 == new_pair[1]
+                and match.player1 == new_pair[0]
+            ):
+                return True
+        return False
 
 
 class Match:
@@ -75,7 +96,6 @@ class Match:
         self.winner = winner
 
     def to_dict(self):
-        print(self.winner)
         return {
             "player0": self.player0.ine,
             "player1": self.player1.ine,

@@ -19,6 +19,7 @@ class TournamentController:
 
         TournamentView.message_tournament_saved()
 
+    @staticmethod
     def get_players():
         players = PlayerModel.load_players()
         return players
@@ -33,3 +34,8 @@ class TournamentController:
         tournaments = cls.get_tournaments()
         tournament = TournamentView.choose_tournament(tournaments)
         return tournament
+
+    @staticmethod
+    def show_ranking(tournament):
+        tournament.calculate_ranking()
+        TournamentView.display_ranking(tournament.players)

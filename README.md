@@ -12,30 +12,30 @@ This file will help you for initiate the project
 ### Specifications
 Click [here](https://course.oc-static.com/projects/Python+FR/P4+-+D%C3%A9veloppez+un+programme+logiciel+en+utilisant+Python/Spe%CC%81cification+technique_De%CC%81veloppez+un+programme+logiciel+en+Python.pdf) for the specifications
 ### Environment
-Avant tout chose il vous faut creer un dossier VENV via la commande suivante
+First and foremost, you need to create a virtual environment (VENV) using the following command:
 :point_down::point_down::point_down:
 
 ```
-python3.10 -m venv $nomdevotrevenv
+python3.10 -m venv $yourvenvname
 ```
 
-Puis de l'activer :
+Then, activate it:
 
 :point_down::point_down::point_down:
 ```
-source $nomdevotrevenv/bin/activate
+source $yourvenvname/bin/activate
 ```
 
 ### Requirements
-Utilisez la commande suivante pour installer l'intégralité des paquets nécéssaire au fonctionnement de ce projet: 
+Use the following command to install all the necessary packages for this project:
 :point_down::point_down::point_down:
 
 ```
 pip install -r requirements.txt
 ```
 
-### L'application 
-Pour lancer l'application, utilisez la commande suivante
+### Application
+To launch the application, use the following command:
 :point_down::point_down::point_down:
 
 ```
@@ -44,13 +44,47 @@ python3 main.py
 
 #### Interface
 
-Une fois l'application vous aurez plusieur choix qui s'offriront a vous : 
-    - Creation de Tournoi
-    - Creation de Joueur
-    - Jouer un Tournoi
-    - Generation des Rapports
-Vous pouvez naviguer a travers les menu via les fleches directionelles et valider avec la toucher "Entrée"
+UOnce the application is running, you will have several choices:
+- Create a Tournament
+- Create a Player
+- Play a Tournament
+- Generate Reports
+You can navigate through the menus using the arrow keys and confirm your selection with the "Enter" key.
 
-/!\Attention pour la selection des joueurs dans un tournoi, pour selectionner un joueur il vous faudras utilise la flèche directionnelle "Droite" pour selectionner le Joeur avant de valide votre selection avec "Entrée"/!\
+:warning: Attention: For player selection in a tournament, to choose a player, use the "Right" arrow key to select the player before confirming your selection with the "Enter" key :warning:
 
+#### Generating Player Pairs
 
+During tournaments, player pairs are generated as follows:
+- First round, completely random.
+- From the second round onwards, players are sorted by their points, and the first player plays against the second, and so on, unless the two players played against each other in the previous round, in which case player 1 will play against player 3.
+
+#### Data Saving
+
+Player and tournament data are saved in a "json" folder, which contains sub-folders named "player" and "tournament," generated at the program's launch if necessary.
+
+Players are saved in a single .jsonl file.
+
+Each tournament has its own .json file.
+
+#### Reports
+
+The reports are formatted as .txt files stored in a folder named "report"
+
+Here are the different types of reports:
+
+    All players recorded in the database.
+    All tournaments.
+    All tournaments but only their names and start and end dates.
+    The list of players in a tournament.
+    The list of rounds in a tournament.
+
+### Flake8
+
+For generate a new flake8 report use the line below : 
+
+:point_down::point_down::point_down:
+
+```
+flake8 --exclude=$yourvenvname --format=html --htmldir=flake-report --max-line-length=119
+```

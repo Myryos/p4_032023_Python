@@ -6,14 +6,20 @@ import os
 class PlayerModel:
     FILENAME = "json/player/players.jsonl"
 
-    def __init__(self, last_name, first_name, birthday, ine):
+    def __init__(self, last_name, first_name, birthday, ine, points=0):
         self.last_name = last_name
         self.first_name = first_name
         self.birthday = birthday
         self.ine = ine
+        self.points = points
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    def __eq__(self, other):
+        if not isinstance(other, PlayerModel):
+            return False
+        return self.ine == other.ine
 
     def save_player(self):
         filename = "json/player/players.json"
@@ -43,9 +49,7 @@ class PlayerModel:
         return player_list
 
     @classmethod
-    def load_players(
-        cls,
-    ):
+    def load_players(cls):
         # TODO ajouter option ine_list et si ine_list != => charge tout
         # else charger les player specifique
         players_dicts = []
